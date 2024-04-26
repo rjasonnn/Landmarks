@@ -1,64 +1,76 @@
-import SwiftUI
+/*
+See the LICENSE.txt file for this sample’s licensing information.
 
+Abstract:
+A view showing the details for a landmark.
+*/
+
+import SwiftUI
+import MapKit
 
 struct LandmarkDetail: View {
     @Environment(ModelData.self) var modelData
     var landmark: Landmark
 
-
     var landmarkIndex: Int {
         modelData.landmarks.firstIndex(where: { $0.id == landmark.id })!
     }
 
-
     var body: some View {
         @Bindable var modelData = modelData
 
-
         ScrollView {
-            MapView(coordinate: landmark.locationCoordinate)
-                .frame(height: 300)
+            ZStack(alignment: Alignment(horizontal: .trailing, vertical: .top)) {
+                MapView(coordinate: landmark.locationCoordinate)
+                    .frame(height: 300)
 
-
-            GambarBunder(image: landmark.image)
-                .offset(y: -130)
-                .padding(.bottom, -130)
-
-
-            VStack(alignment: .leading) {
-                HStack {
-                    Text(landmark.name)
-                        .font(.title)
-                    FavoriteButton(isSet: $modelData.landmarks[landmarkIndex].isFavorite)
+                Button("Open in Maps") {
+                    let destination = MKMapItem(placemark: MKPlacemark(coordinate: landmark.locationCoordinate))
+                    destination.name = landmark.name
+                    destination.openInMaps()
                 }
+                .padding()
+            }
 
+            VStack(alignment: .leading, spacing: 20) {
+                HStack(spacing: 24) {
+                    GambarBunder(image: landmark.image.resizable())
+                        .frame(width: 160, height: 160)
 
-                HStack {
-                    Text(landmark.park)
-                    Spacer()
-                    Text(landmark.state)
+                    VStack(alignment: .leading) {
+                        HStack {
+                            Text(landmark.name)
+                                .font(.title)
+                            FavoriteButton(isSet: $modelData.landmarks[landmarkIndex].isFavorite)
+                                .buttonStyle(.plain)
+                        }
+
+                        VStack(alignment: .leading) {
+                            Text(landmark.park)
+                            Text(landmark.state)
+                        }
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                    }
                 }
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-
 
                 Divider()
-
 
                 Text("About \(landmark.name)")
                     .font(.title2)
                 Text(landmark.description)
             }
             .padding()
+            .frame(maxWidth: 700)
+            .offset(y: -50)
         }
         .navigationTitle(landmark.name)
-        .navigationBarTitleDisplayMode(.inline)
     }
 }
-
 
 #Preview {
     let modelData = ModelData()
     return LandmarkDetail(landmark: modelData.landmarks[0])
         .environment(modelData)
+        .frame(width: 850, height: 700)
 }
